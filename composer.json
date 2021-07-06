@@ -1,0 +1,16 @@
+{
+    "license": "MIT",
+    "type": "project",
+    "autoload": {
+        "psr-4" : {
+        }
+    },
+    "autoload-dev": {
+        "psr-4" : {
+        }
+    },
+    "require": {
+        "stripe/stripe-php": "^7.87",
+        "vlucas/phpdotenv": "^5.3"
+    }
+}
