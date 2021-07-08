@@ -82,7 +82,7 @@ function UpdateSubscriptionPrice($subscriptionIds, $price)
         // No exceptions, remove to indicate successful update.
         unset($failedToUpdate[array_search($subscriptionId, $failedToUpdate)]);
 
-        // Stripe api handles 100 read/write requests per minute.
+        // Stripe api handles 100 read/write requests per second.
         // We've just sent two, so delay is 1s = 1000000us / 100 = 10000 * 2 = 20000.
         // And a 20% buffer to be safe.
         // https://stripe.com/docs/rate-limits
