@@ -5,12 +5,14 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Stripe\Stripe;
 use Stripe\Subscription;
+use Support\RateLimiter;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
 if (!isset($argv[1])) {
-    echo 'You must the path to a file to import subscription ids from.';
+    echo 'You must supply the path to a file to import subscription ids from as a parameter.' . PHP_EOL;
+    die;
 }
 
 $inputFile = $argv[1];
@@ -49,11 +51,15 @@ if (empty($idsNotUpdated)) {
 // Update a list of subscriptions to a new price, return those that failed to update.
 function UpdateSubscriptionPrice($subscriptionIds, $price)
 {
+    $limiter = new RateLimiter(100, 1);
+    $limiter->setMode(RateLimiter::MODE_DELAY);
+
     // Store a separate id array to avoid manipulating loop array during execution.
     $failedToUpdate = $subscriptionIds;
 
     foreach ($subscriptionIds as $subscriptionId) {
         try {
+            $limiter->hit();
             $subscription = Subscription::retrieve($subscriptionId);
         } catch (\Exception $e) {
             echo 'Failed to retrieve subscription with id \'' . $subscriptionId . "'.\r\n";
@@ -63,6 +69,7 @@ function UpdateSubscriptionPrice($subscriptionIds, $price)
         }
     
         try {
+            $limiter->hit();
             Subscription::update($subscriptionId, [
                 'cancel_at_period_end' => false,
                 'proration_behavior' => 'create_prorations',
@@ -81,12 +88,6 @@ function UpdateSubscriptionPrice($subscriptionIds, $price)
 
         // No exceptions, remove to indicate successful update.
         unset($failedToUpdate[array_search($subscriptionId, $failedToUpdate)]);
-
-        // Stripe api handles 100 read/write requests per second.
-        // We've just sent two, so delay is 1s = 1000000us / 100 = 10000 * 2 = 20000.
-        // And a 20% buffer to be safe.
-        // https://stripe.com/docs/rate-limits
-        usleep(24000);
     }
 
 
