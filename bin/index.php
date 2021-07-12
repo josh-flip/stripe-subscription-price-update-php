@@ -3,6 +3,7 @@
 declare (strict_types = 1);
 require __DIR__ . '/../vendor/autoload.php';
 
+use Carbon\CarbonInterval;
 use Stripe\Stripe;
 use Stripe\Subscription;
 use Support\RateLimiter;
@@ -51,7 +52,7 @@ if (empty($idsNotUpdated)) {
 // Update a list of subscriptions to a new price, return those that failed to update.
 function UpdateSubscriptionPrice($subscriptionIds, $price)
 {
-    $limiter = new RateLimiter(100, 1);
+    $limiter = new RateLimiter(100, CarbonInterval::seconds(1));
     $limiter->setMode(RateLimiter::MODE_DELAY);
 
     // Store a separate id array to avoid manipulating loop array during execution.
