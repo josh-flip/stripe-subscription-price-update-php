@@ -39,7 +39,7 @@ class RateLimiter
         ];
 
         if (! in_array($mode, $modes)) {
-            throw Exception('Invalid mode. Must be in list: ' . implode(', ', $modes));
+            throw new Exception('Invalid mode. Must be in list: ' . implode(', ', $modes));
         }
 
         $this->mode = $mode;
